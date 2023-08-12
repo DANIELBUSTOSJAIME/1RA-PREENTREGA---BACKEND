@@ -26,7 +26,7 @@ app.get('/products', async (req,res) => {
 
 app.get('/products/:id', async (req, res) => {
     const id = req.params.id
-    const prod = productManagers.getProductById(parseInt(id))
+    const prod = await productManagers.getProductById(parseInt(id))
     if(prod){
         res.status(200).send(prod)
         console.log("no me trae",prod)}
