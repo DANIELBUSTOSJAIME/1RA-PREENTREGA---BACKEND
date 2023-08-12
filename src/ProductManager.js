@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 
-const path = "./src/product.json";
+const path = "./product.json";
 
 export default class ProductManager {
   constructor() {
@@ -10,15 +10,18 @@ export default class ProductManager {
   async getProducts() {
     const products = JSON.parse(await fs.readFile(path, "utf-8"));
     console.log(products);
+    return products;
   }
   // METODO GET PRODUCT BY ID
    async getProductById(id) {
     const products = JSON.parse(await fs.readFile(path, "utf-8"));
     const prod = products.find((product) => product.id === id);
     if (prod) {
-      return console.log(prod);
+      //console.log(prod);
+      return prod;
     } else {
-      console.log("El ID ingresado no existe");
+      //console.log("El ID ingresado no existe");
+      return "El ID ingresado no existe"
     }
   }
   // METODO ADD PRODUCT CON VALIDACION DE CODE
