@@ -17,22 +17,20 @@ export default class ProductManager {
     const products = JSON.parse(await fs.readFile(path, "utf-8"));
     const prod = products.find((product) => product.id === id);
     if (prod) {
-      //console.log(prod);
       return prod;
     } else {
-      //console.log("El ID ingresado no existe");
       return "El ID ingresado no existe"
     }
   }
   // METODO ADD PRODUCT CON VALIDACION DE CODE
-   async addProduct(product) {
+  async addProduct(product) {
     const products = JSON.parse(await fs.readFile(path, "utf-8"));
     const productExist = products.find((prod) => prod.code === product.code);
     if (productExist) {
-        console.log("El código agregado ya existe");
+      return "El código agregado ya existe";
     } else{
-        products.push(product);
-        await fs.writeFile(path, JSON.stringify(products));
+      products.push(product);
+      await fs.writeFile(path, JSON.stringify(products));
     }
   }
   // METODO UPDATE PRODUCT
@@ -46,9 +44,12 @@ export default class ProductManager {
       products[index].thumbnail = updatedProduct.thumbnail;
       products[index].code = updatedProduct.code;
       products[index].stock = updatedProduct.stock;
+      products[index].status = updatedProduct.status;
+      products[index].category = updatedProduct.category
       await fs.writeFile(path, JSON.stringify(products));
+      return "El producto ha sido actualizado"
     } else {
-      console.log("El ID ingresado no existe");
+      return "El ID ingresado no existe";
     }
   }
    // METODO DELETE PRODUCT
@@ -57,8 +58,9 @@ export default class ProductManager {
         const productDelete = products.find((prod) => prod.id === id);
         if(productDelete){
             await fs.writeFile(path, JSON.stringify(products.filter(prod => prod.id != id)));
+            return "El producto ha sido eliminado"
         }else {
-      console.log("El ID ingresado no existe");
+      return "El ID ingresado no existe";
     }
     }
 }
