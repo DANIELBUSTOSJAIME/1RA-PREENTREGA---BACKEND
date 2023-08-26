@@ -2,6 +2,9 @@
 import express from 'express'
 import path from 'path'
 import { __dirname } from './path.js';
+import multer from 'multer';
+import { engine } from 'express-handlebars';
+import { Server } from 'socket.io';
 
 // ROUTES
 import prodsRouter from "./routes/products.routes.js";
@@ -12,18 +15,59 @@ import cartRouter from './routes/cart.routers.js';
 const PORT = 8080
 const app = express()
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use('/api/products', prodsRouter)
-app.use('/api/carts', cartRouter)
-app.use('/static', express.static(path.join(__dirname, '/public')))
-
-console.log(path.join(__dirname + '/public'))
-app.listen(PORT, () => {
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'src/public/img')
+    },
+    filename: (req, file, cb) =>{
+        cb(null, `${Date.now()}${file.originalname}`)
+    }
+})
+const serverExpress = app.listen(PORT, () => {
     console.log(`Server on port ${PORT}`)
 })
 
 
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.engine('handlebars', engine()) 
+app.set('view engine', 'handlebars')
+app.set('views', path.resolve(__dirname, './views'))
+const upload = multer ({ storage: storage})
+
+
+app.use('/api/products', prodsRouter)
+app.use('/api/carts', cartRouter)
+app.use('/static', express.static(path.join(__dirname, '/public')))
+app.get('/static', (req, res) =>{
+    res.render('chat')
+})
+app.post('/upload', upload.single('product'), (req, res) => {
+    console.log(req.file)
+    console.log(req.body)
+    res.status(200).send("Imagen cargada")
+})
+
+const io = new Server(serverExpress)
+const mensajes = []
+
+io.on('connection', (socket) => {
+    console.log("Servidor Socket.io conectado")
+    socket.on('mensajeConexion', (info) => {
+        console.log(info)
+    })
+    socket.on('mensaje', (infoMensaje) => {
+        console.log(infoMensaje)
+        mensajes.push(infoMensaje)
+        socket.emit('mensajes', mensajes)
+    })
+    
+})
+
+console.log(path.join(__dirname + '/public'))
+
+
+ 
 /*const product1 = new Product("Notebook", "HP 2023", 100000, "image", "AA34", 50, "TRUE", "electro")
 const product2 = new Product("Notebook", "Baio 2022", 90000, "image", "AA24", 35, "TRUE", "electro")
 const product3 = new Product("Notebook", "Baio 2021", 80000, "image", "AA14", 25, "TRUE", "electro")
