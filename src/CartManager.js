@@ -41,11 +41,17 @@ export default class CartManager {
     const cartIndex = carts.findIndex((c) => c.id == cartId);
     if (cartIndex !== -1) {
       const cart = carts[cartIndex];
+      const existingProductIndex = cart.products.findIndex((p) => p.id == product.id);
+    if (existingProductIndex !== -1) {
+      cart.products[existingProductIndex].quantity += 1;
+    } else {
+      product.quantity = 1;
       cart.products.push(product);
-      await fs.writeFile(this.path, JSON.stringify(carts));
-      return true;
     }
-    return false;
+    await fs.writeFile(this.path, JSON.stringify(carts));
+    return true;
+  }
+  return false;
   }
 }
 

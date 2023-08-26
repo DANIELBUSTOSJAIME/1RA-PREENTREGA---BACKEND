@@ -1,6 +1,6 @@
-const socket = io()
-/*
-socket.emit('mensajeConexion', "Hola Socket")*/
+/*const socket = io()
+
+socket.emit('mensajeConexion', "Hola Socket")
 
 const botonChat = document.getElementById('botonChat')
 const valInput = document.getElementById('chatBox')
@@ -34,4 +34,4 @@ socket.on('mensajes', (arrayMensajes) => {
     arrayMensajes.forEach(mensaje => {
         parrafosMensajes.innerHTML += `<p>Fecha: ${mensaje.fecha}, User: ${mensaje.user}, Escribio: ${mensaje.mensaje} </p>`
     })
-})
+})*/

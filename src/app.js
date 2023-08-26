@@ -2,20 +2,41 @@
 import express from 'express'
 import path from 'path'
 import { __dirname } from './path.js';
-import multer from 'multer';
+//import multer from 'multer';
 import { engine } from 'express-handlebars';
 import { Server } from 'socket.io';
 
 // ROUTES
 import prodsRouter from "./routes/products.routes.js";
-import cartRouter from './routes/cart.routers.js';
+import cartRouter from './routes/cart.routes.js';
+import ProductManager from './ProductManager.js';
 
 //import Product from './Product.js';
-
+const pathProduct = "./product.json";
+const productManagers = new ProductManager(pathProduct);
 const PORT = 8080
 const app = express()
+const serverExpress = app.listen(PORT, () => {
+    console.log(`Server on port ${PORT}`)
+})
 
-const storage = multer.diskStorage({
+// MIDLEWEARES
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use('/static', express.static(path.join(__dirname, '/public')))
+console.log(path.join(__dirname + '/public'))
+
+// CONFIG HANDLEBARS
+app.engine('handlebars', engine()) 
+app.set('view engine', 'handlebars')
+app.set('views', path.resolve(__dirname, './views'))
+
+// ROUTES
+app.use('/api/products', prodsRouter)
+app.use('/api/carts', cartRouter)
+
+// MULTER
+/*const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'src/public/img')
     },
@@ -23,51 +44,62 @@ const storage = multer.diskStorage({
         cb(null, `${Date.now()}${file.originalname}`)
     }
 })
-const serverExpress = app.listen(PORT, () => {
-    console.log(`Server on port ${PORT}`)
-})
-
-
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.engine('handlebars', engine()) 
-app.set('view engine', 'handlebars')
-app.set('views', path.resolve(__dirname, './views'))
 const upload = multer ({ storage: storage})
-
-
-app.use('/api/products', prodsRouter)
-app.use('/api/carts', cartRouter)
-app.use('/static', express.static(path.join(__dirname, '/public')))
-app.get('/static', (req, res) =>{
-    res.render('chat')
-})
 app.post('/upload', upload.single('product'), (req, res) => {
     console.log(req.file)
     console.log(req.body)
     res.status(200).send("Imagen cargada")
-})
+})*/
 
+// SOCKET.IO
 const io = new Server(serverExpress)
-const mensajes = []
+let listProducts = []
+const cargarProd = async () => {
+    try{
+        listProducts = await productManagers.getProducts();
+    } catch (error){
+        console.error("Error: not product found");
+    }
+}
+cargarProd();
 
-io.on('connection', (socket) => {
+//const mensajes = []
+
+io.on('connection', async (socket) => {
     console.log("Servidor Socket.io conectado")
-    socket.on('mensajeConexion', (info) => {
+    
+    socket.emit('products', listProducts);
+
+    socket.on('addProd', async prod => {
+        console.log('Producto agregado:', prod);
+        return await productManagers.addProduct(prod)
+    }
+    )
+   
+    /*socket.on('mensajeConexion', (info) => {
         console.log(info)
     })
     socket.on('mensaje', (infoMensaje) => {
         console.log(infoMensaje)
         mensajes.push(infoMensaje)
         socket.emit('mensajes', mensajes)
-    })
+    })*/
     
 })
 
-console.log(path.join(__dirname + '/public'))
+// RENDER
+app.get('/home', (req, res) =>{
+    res.status(200).render('home', {
+        title: "Lista de Productos",
+        products: listProducts,
+    })
+})
+app.get('/realtimeproducts', (req, res) => {
+    res.status(200).render('realTimeProducts', {
+        title: "Productos en Tiempo Real"
+    })
+})
 
-
- 
 /*const product1 = new Product("Notebook", "HP 2023", 100000, "image", "AA34", 50, "TRUE", "electro")
 const product2 = new Product("Notebook", "Baio 2022", 90000, "image", "AA24", 35, "TRUE", "electro")
 const product3 = new Product("Notebook", "Baio 2021", 80000, "image", "AA14", 25, "TRUE", "electro")

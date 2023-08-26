@@ -10,7 +10,6 @@ export default class ProductManager {
   // METODO GET PRODUCT
   async getProducts() {
     const products = JSON.parse(await fs.readFile(path, "utf-8"));
-    console.log(products);
     return products;
   }
   // METODO GET PRODUCT BY ID
